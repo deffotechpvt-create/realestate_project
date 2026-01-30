@@ -2,9 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useContext } from "react";
+import { AuthContext } from "@/context/AuthContext";
+
 
 export default function Navbar() {
     const pathname = usePathname();
+    const { user, logout } = useContext(AuthContext);
 
     // Don't show this navbar on admin pages
     if (pathname.startsWith('/admin')) {

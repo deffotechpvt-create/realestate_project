@@ -37,7 +37,7 @@ export default function LoginPage() {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         // Simple mock check
         const user = MOCK_USERS.find(u => u.email === formData.email);
@@ -59,6 +59,7 @@ export default function LoginPage() {
             }
         }
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8 py-12">
