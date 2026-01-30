@@ -1,0 +1,162 @@
+{
+    "info": {
+        "_postman_id": "realestate-auth-property-api",
+        "name": "RealEstate Platform API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "description": "Postman collection for authentication and property APIs."
+    },
+    "item": [
+        {
+            "name": "Auth - Register",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/auth/register",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "register"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"user@test.com\",\n  \"password\": \"123456\",\n  \"phone\": \"9999999999\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Auth - Login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/auth/login",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "login"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"email\": \"user@test.com\",\n  \"password\": \"123456\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Auth - Setup Admin (One Time)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/auth/setup-admin",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "setup-admin"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@test.com\",\n  \"password\": \"admin123\",\n  \"phone\": \"8888888888\",\n  \"adminKey\": \"YOUR_ADMIN_SETUP_KEY\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Auth - Current User",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/api/auth/me",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "me"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Auth - Logout",
+            "request": {
+                "method": "POST",
+                "url": {
+                    "raw": "{{base_url}}/api/auth/logout",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "logout"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Property - Search",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{base_url}}/api/properties/search?latitude=28.6&longitude=77.2&radius=5",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "properties",
+                        "search"
+                    ],
+                    "query": [
+                        {
+                            "key": "latitude",
+                            "value": "28.6"
+                        },
+                        {
+                            "key": "longitude",
+                            "value": "77.2"
+                        },
+                        {
+                            "key": "radius",
+                            "value": "5"
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:5000"
+        }
+    ]
+}

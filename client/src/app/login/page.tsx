@@ -3,6 +3,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useContext } from "react";
+import { AuthContext } from "@/context/AuthContext";
+
 import { FaGoogle, FaFacebookF, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function LoginPage() {
@@ -11,17 +14,25 @@ export default function LoginPage() {
         email: '',
         password: '',
     });
+    const { login } = useContext(AuthContext);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Login Data:', formData);
-        // Add login logic here
-        alert('Login functionality coming soon!');
+
+        const result = await login(formData.email, formData.password);
+
+        if (!result.success) {
+            alert(result.message);
+            return;
+        }
+
+        // window.location.href = "/";
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">

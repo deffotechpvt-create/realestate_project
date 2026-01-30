@@ -11,25 +11,32 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
+    index: true
   },
   phone: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
     trim: true
   },
   password: {
     type: String,
-    required: function() { return !this.googleId; } // Required if not using OAuth
+    required: function () { return !this.googleId; } // Required if not using OAuth
   },
   googleId: {
     type: String
   },
   role: {
     type: String,
-    enum: ['tenant', 'buyer', 'owner', 'admin'],
-    default: 'tenant'
+    enum: ['admin', 'agent', 'user'],
+    default: 'user'
+
+  },
+  status: {
+    type: String,
+    enum: ['active', 'pending_verification', 'banned'],
+    default: 'active'
   },
   isVerified: {
     type: Boolean,
