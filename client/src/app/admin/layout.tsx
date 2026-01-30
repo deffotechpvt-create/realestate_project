@@ -17,16 +17,27 @@ import {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [userRole, setUserRole] = useState('admin');
+    const [userName, setUserName] = useState('Admin User');
     const pathname = usePathname();
 
-    const menuItems = [
-        { name: 'Dashboard', icon: <FaHome />, path: '/admin' },
-        { name: 'Properties', icon: <FaBuilding />, path: '/admin/properties' },
-        { name: 'CRM & Leads', icon: <FaUserTie />, path: '/admin/leads' },
-        { name: 'Users & Agents', icon: <FaUsers />, path: '/admin/users' },
-        { name: 'Content & News', icon: <FaNewspaper />, path: '/admin/news' },
-        { name: 'Settings', icon: <FaCog />, path: '/admin/settings' },
+    React.useEffect(() => {
+        const role = localStorage.getItem('userRole') || 'admin';
+        const name = localStorage.getItem('userName') || 'Admin User';
+        setUserRole(role);
+        setUserName(name);
+    }, []);
+
+    const allMenuItems = [
+        { name: 'Dashboard', icon: <FaHome />, path: '/admin', roles: ['admin', 'agent'] },
+        { name: 'Properties', icon: <FaBuilding />, path: '/admin/properties', roles: ['admin'] },
+        { name: 'CRM & Leads', icon: <FaUserTie />, path: '/admin/leads', roles: ['admin', 'agent'] },
+        { name: 'Users & Agents', icon: <FaUsers />, path: '/admin/users', roles: ['admin'] },
+        { name: 'Content & News', icon: <FaNewspaper />, path: '/admin/news', roles: ['admin'] },
+        { name: 'Settings', icon: <FaCog />, path: '/admin/settings', roles: ['admin'] },
     ];
+
+    const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
 
     return (
         <div className="min-h-screen bg-gray-100 flex">
@@ -37,7 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
                 <div className="h-16 flex items-center justify-center border-b border-indigo-800">
                     {isSidebarOpen ? (
-                        <h1 className="text-xl font-bold">RealEstate Admin</h1>
+                        <h1 className="text-xl font-bold">RealEstate {userRole === 'agent' ? 'Agent' : 'Admin'}</h1>
                     ) : (
                         <span className="text-xl font-bold">RA</span>
                     )}
@@ -66,10 +77,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </nav>
 
                 <div className="absolute bottom-0 w-full p-4 border-t border-indigo-800">
-                    <button className="flex items-center text-red-300 hover:text-white transition-colors w-full px-2 py-2">
-                        <FaSignOutAlt className="text-xl mr-3" />
-                        {isSidebarOpen && <span>Logout</span>}
-                    </button>
+                    <Link href="/login">
+                        <button className="flex items-center text-red-300 hover:text-white transition-colors w-full px-2 py-2">
+                            <FaSignOutAlt className="text-xl mr-3" />
+                            {isSidebarOpen && <span>Logout</span>}
+                        </button>
+                    </Link>
                 </div>
             </aside>
 
@@ -90,11 +103,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center text-right">
                             <div className="mr-3 hidden sm:block">
-                                <p className="text-sm font-bold text-gray-800">Admin User</p>
-                                <p className="text-xs text-blue-600">Super Administrator</p>
+                                <p className="text-sm font-bold text-gray-800">{userName}</p>
+                                <p className="text-xs text-blue-600 capitalize bg-blue-50 px-2 py-0.5 rounded-full inline-block">{userRole}</p>
                             </div>
                             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-800 font-bold">
-                                A
+                                {userName.charAt(0)}
                             </div>
                         </div>
                     </div>

@@ -3,7 +3,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  role: 'tenant' | 'buyer' | 'owner' | 'admin';
+  role: 'tenant' | 'buyer' | 'owner' | 'admin' | 'agent';
   isVerified: boolean;
   subscription: {
     plan: 'free' | 'basic' | 'premium';
