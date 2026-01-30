@@ -19,7 +19,7 @@ export default function SellPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        alert("Property Posted Successfully! (Mock)");
+        alert("Property Submitted for Review! Our team will verify and approve your listing shortly.");
         // Here you would send data to backend
     };
 

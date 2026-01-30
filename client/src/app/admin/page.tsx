@@ -1,7 +1,7 @@
 "use strict";
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     FaUserPlus,
     FaHome,
@@ -13,6 +13,13 @@ import {
 } from 'react-icons/fa';
 
 export default function AdminDashboard() {
+    const [userRole, setUserRole] = useState('admin');
+
+    useEffect(() => {
+        const role = localStorage.getItem('userRole') || 'admin';
+        setUserRole(role);
+    }, []);
+
     return (
         <div>
             <div className="mb-8">
@@ -72,21 +79,7 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Pending Approvals (System Health) */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-orange-500">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <p className="text-gray-500 text-sm font-medium">Pending Approvals</p>
-                            <h3 className="text-2xl font-bold text-gray-800 mt-1">12</h3>
-                        </div>
-                        <div className="p-3 bg-orange-100 text-orange-600 rounded-lg">
-                            <FaExclamationCircle className="text-xl" />
-                        </div>
-                    </div>
-                    <div className="mt-4 text-sm text-orange-600 font-medium">
-                        Requires Moderation
-                    </div>
-                </div>
+
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
