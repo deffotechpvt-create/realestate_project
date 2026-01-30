@@ -37,6 +37,7 @@ export default function Navbar() {
                     <Link href="/login" className="text-gray-600 hover:text-blue-600 font-medium transition">
                         Sign In
                     </Link>
+                    {/* Post Property Restored for Users */}
                     <Link href="/sell">
                         <button className="px-5 py-2 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-600/20 active:scale-95 transform duration-150">
                             Post Property

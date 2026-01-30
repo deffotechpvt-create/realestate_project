@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
     FaEdit,
     FaTrash,
@@ -10,6 +11,7 @@ import {
     FaFilter
 } from 'react-icons/fa';
 
+// Mock Interfaces and Data
 // Mock Interfaces and Data
 interface Property {
     id: string;
@@ -21,21 +23,31 @@ interface Property {
     approval?: string;
     dateAdded: string;
     views: number;
+    ownerId: string; // Added ownerId
 }
 
 const INITIAL_PROPERTIES: Property[] = [
-    { id: '1', title: 'Luxury 3BHK Apartment in CP', type: 'Apartment', price: 85000, location: 'Connaught Place, Delhi', status: 'Active', approval: 'Approved', dateAdded: '2023-10-15', views: 1240 },
-    { id: '2', title: 'Modern Villa in GK', type: 'Villa', price: 85000000, location: 'Greater Kailash, Delhi', status: 'Active', approval: 'Approved', dateAdded: '2023-11-02', views: 890 },
-    { id: '3', title: 'Office Space in Noida', type: 'Commercial', price: 150000, location: 'Sector 62, Noida', status: 'Pending', approval: 'Pending Review', dateAdded: '2023-11-10', views: 430 },
-    { id: '4', title: 'Studio in Gurgaon', type: 'Apartment', price: 25000, location: 'Cyber City, Gurgaon', status: 'Sold', approval: 'Approved', dateAdded: '2023-09-28', views: 2100 },
-    { id: '5', title: 'Farmhouse in Chattarpur', type: 'Plot', price: 12000000, location: 'Chattarpur, Delhi', status: 'Active', approval: 'Approved', dateAdded: '2023-12-05', views: 560 },
-    { id: '6', title: '2BHK in Dwarka', type: 'Apartment', price: 35000, location: 'Dwarka Sec 10, Delhi', status: 'New', approval: 'Pending Review', dateAdded: '2024-01-12', views: 320 },
+    { id: '1', title: 'Luxury 3BHK Apartment in CP', type: 'Apartment', price: 85000, location: 'Connaught Place, Delhi', status: 'Active', approval: 'Approved', dateAdded: '2023-10-15', views: 1240, ownerId: '1' },
+    { id: '2', title: 'Modern Villa in GK', type: 'Villa', price: 85000000, location: 'Greater Kailash, Delhi', status: 'Active', approval: 'Approved', dateAdded: '2023-11-02', views: 890, ownerId: '2' }, // Agent's property
+    { id: '3', title: 'Office Space in Noida', type: 'Commercial', price: 150000, location: 'Sector 62, Noida', status: 'Pending', approval: 'Pending Review', dateAdded: '2023-11-10', views: 430, ownerId: '1' },
+    { id: '4', title: 'Studio in Gurgaon', type: 'Apartment', price: 25000, location: 'Cyber City, Gurgaon', status: 'Sold', approval: 'Approved', dateAdded: '2023-09-28', views: 2100, ownerId: '2' }, // Agent's property
+    { id: '5', title: 'Farmhouse in Chattarpur', type: 'Plot', price: 12000000, location: 'Chattarpur, Delhi', status: 'Active', approval: 'Approved', dateAdded: '2023-12-05', views: 560, ownerId: '1' },
+    { id: '6', title: '2BHK in Dwarka', type: 'Apartment', price: 35000, location: 'Dwarka Sec 10, Delhi', status: 'New', approval: 'Pending Review', dateAdded: '2024-01-12', views: 320, ownerId: '2' }, // Agent's property
 ];
 
 export default function PropertiesPage() {
     const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('All');
+
+    // User State
+    const [userRole, setUserRole] = useState('admin');
+    const [userId, setUserId] = useState('');
+
+    React.useEffect(() => {
+        setUserRole(localStorage.getItem('userRole') || 'admin');
+        setUserId(localStorage.getItem('userId') || '');
+    }, []);
 
     const handleDelete = (id: string) => {
         if (window.confirm('Are you sure you want to delete this property?')) {
@@ -44,6 +56,11 @@ export default function PropertiesPage() {
     };
 
     const filteredProperties = properties.filter(property => {
+        // Role based Filtering
+        if (userRole === 'agent' && property.ownerId !== userId) {
+            return false;
+        }
+
         const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             property.location.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = filterStatus === 'All' || property.status === filterStatus;
@@ -53,10 +70,14 @@ export default function PropertiesPage() {
     return (
         <div>
             <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-4 md:mb-0">Properties Management</h2>
-                <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition shadow-md">
-                    <FaPlus /> Add New Property
-                </button>
+                <h2 className="text-3xl font-bold text-gray-800 mb-4 md:mb-0">
+                    {userRole === 'agent' ? 'My Properties' : 'Properties Management'}
+                </h2>
+                <Link href="/admin/properties/add">
+                    <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition shadow-md">
+                        <FaPlus /> Add New Property
+                    </button>
+                </Link>
             </div>
 
             {/* Filters and Search */}
@@ -118,9 +139,9 @@ export default function PropertiesPage() {
                                         <div className="flex flex-col gap-1">
                                             <span
                                                 className={`px-3 py-1 rounded-full text-xs font-bold uppercase w-fit ${property.status === 'Active' ? 'bg-green-100 text-green-700' :
-                                                        property.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                            property.status === 'Sold' ? 'bg-blue-100 text-blue-700' :
-                                                                'bg-gray-100 text-gray-700'
+                                                    property.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                        property.status === 'Sold' ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-gray-100 text-gray-700'
                                                     }`}
                                             >
                                                 {property.status}
