@@ -1,8 +1,10 @@
 const User = require('../models/User');
-const bcrypt = require('bcrypt');
 const { generateToken } = require('../utils/token');
+const { asyncHandler, AppError } = require('../middleware/errorMiddleware');
 
-// Helper: set cookie
+// ==========================================
+// HELPER: Set HTTP-Only Cookie
+// ==========================================
 function setAuthCookie(res, token) {
     res.cookie('token', token, {
         httpOnly: true,
@@ -12,133 +14,156 @@ function setAuthCookie(res, token) {
     });
 }
 
-exports.register = async (req, res) => {
-    try {
-        const { name, email, password, accountType } = req.body;
-        const normalizedEmail = email.trim().toLowerCase();
+// ==========================================
+// REGISTER USER
+// ==========================================
+exports.register = asyncHandler(async (req, res) => {
+    const { name, email, password, accountType } = req.body;
 
-        if (!name || !email || !password || !accountType) {
-            return res.status(400).json({ message: 'Missing required fields' });
-        }
-        const hash = await bcrypt.hash(password, 10);
-
-        // ---------- ROLE + STATUS DECISION ----------
-        let role = "user";
-        let status = "active";
-
-        if (accountType === "agent") {
-            status = "pending_verification"; // admin approval needed
-        }
-        // buyer OR anything else => normal user
-        // -------------------------------------------
-        await User.create({
-            name,
-            email: normalizedEmail,
-            password: hash,
-            role,
-            status
-        });
-
-        res.status(201).json({
-            message: "Registration successful. Please login."
-        });
-
-
-    } catch (err) {
-        if (err.code === 11000) {
-            return res.status(409).json({ message: "Email already registered" });
-        }
-        console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
+    // Validation
+    if (!name || !email || !password || !accountType) {
+        throw new AppError('All fields are required', 400);
     }
-};
 
+    // Determine role and status
+    let role = 'user';
+    let status = 'active';
 
-exports.login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+    if (accountType === 'agent') {
+        role = 'agent';
+        status = 'pending_verification';
+    }
 
-        if (!email || !password) {
-            return res.status(400).json({ message: 'Missing email or password' });
-        }
+    // Create user (password auto-hashed by model pre-save hook)
+    await User.create({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password, // Auto-hashed by User model
+        role,
+        status
+    });
 
-        const normalizedEmail = email.trim().toLowerCase();
+    res.status(201).json({
+        success: true,
+        message: accountType === 'agent'
+            ? 'Registration successful. Your agent account is pending admin approval.'
+            : 'Registration successful. Please login.'
+    });
+});
 
-        const user = await User
-            .findOne({ email: normalizedEmail })
-            .select('_id name email role status password');
+// ==========================================
+// LOGIN USER
+// ==========================================
+exports.login = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
 
-        if (!user) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
+    // Validation
+    if (!email || !password) {
+        throw new AppError('Email and password are required', 400);
+    }
 
-        const match = await bcrypt.compare(password, user.password);
+    // Find user with password field (using static method)
+    const user = await User.findByEmail(email.trim());
 
-        if (!match) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
+    if (!user) {
+        throw new AppError('Invalid email or password', 401);
+    }
 
-        if (user.status === 'banned') {
-            return res.status(403).json({ message: 'User is banned' });
-        }
+    // Check if user can login (not banned/pending)
+    user.canLogin();
 
-        const token = generateToken({
-            id: user._id,
+    // Compare password (using instance method - uses bcrypt internally)
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+        throw new AppError('Invalid email or password', 401);
+    }
+
+    // Update last login
+    await user.updateLastLogin();
+
+    // Generate JWT token
+    const token = generateToken({
+        id: user._id,
+        role: user.role,
+        status: user.status
+    });
+
+    // Set HTTP-only cookie
+    setAuthCookie(res, token);
+
+    // Return safe user data (password excluded by toJSON)
+    const response = {
+        success: true,
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
             role: user.role,
             status: user.status
-        });
+        }
+    };
 
-        setAuthCookie(res, token);
-
-        res.json({
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
-        });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
+    // Add message for pending users
+    if (user.status === 'pending_verification') {
+        response.message = 'Your agent account is pending admin approval. You can manage your profile but cannot access CRM features yet.';
     }
-};
 
+    res.json(response);
+});
 
+// ==========================================
+// LOGOUT USER
+// ==========================================
 exports.logout = (req, res) => {
     res.clearCookie('token', {
         httpOnly: true,
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === 'production'
     });
-    res.json({ message: 'Logged out' });
+
+    res.json({
+        success: true,
+        message: 'Logged out successfully'
+    });
 };
 
-// One-time admin setup
-exports.setupAdmin = async (req, res) => {
-    try {
-        const { name, email, password, phone, adminKey } = req.body;
-        if (!name || !email || !password || !adminKey) return res.status(400).json({ message: 'Missing required fields' });
-        if (adminKey !== process.env.ADMIN_SETUP_KEY) return res.status(403).json({ message: 'Invalid admin setup key' });
-        const adminExists = await User.findOne({ role: 'admin' });
-        if (adminExists) return res.status(409).json({ message: 'Admin already exists' });
-        const hash = await bcrypt.hash(password, 12);
-        await User.create({
-            name,
-            email: email.toLowerCase(),
-            password: hash,
-            phone,
-            role: 'admin',
-            status: 'active'
-        });
-        res.status(201).json({
-            message: "Admin created successfully. Please login."
-        });
+// ==========================================
+// SETUP ADMIN (One-time only)
+// ==========================================
+exports.setupAdmin = asyncHandler(async (req, res) => {
+    const { name, email, password, phone, adminKey } = req.body;
 
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Internal server error' });
-
+    // Validation
+    if (!name || !email || !password || !adminKey) {
+        throw new AppError('All fields are required', 400);
     }
-};
+
+    // Verify admin setup key
+    if (adminKey !== process.env.ADMIN_SETUP_KEY) {
+        throw new AppError('Invalid admin setup key', 403);
+    }
+
+    // Check if admin already exists
+    const adminExists = await User.findOne({ role: 'admin' });
+
+    if (adminExists) {
+        throw new AppError('Admin already exists. This endpoint is disabled.', 409);
+    }
+
+    // Create admin (password auto-hashed by model)
+    await User.create({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password, // Auto-hashed by User model
+        phone: phone?.trim(),
+        role: 'admin',
+        status: 'active',
+        isVerified: true
+    });
+
+    res.status(201).json({
+        success: true,
+        message: 'Admin account created successfully. Please login.'
+    });
+});

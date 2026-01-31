@@ -29,7 +29,7 @@
                 },
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"user@test.com\",\n  \"password\": \"123456\",\n  \"phone\": \"9999999999\"\n}"
+                    "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"user@test.com\",\n  \"password\": \"123456\",\n  \"accountType\": \"buyer\"\n}"
                 }
             }
         },
@@ -88,19 +88,46 @@
             }
         },
         {
-            "name": "Auth - Current User",
+            "name": "User - Current User",
             "request": {
                 "method": "GET",
                 "url": {
-                    "raw": "{{base_url}}/api/auth/me",
+                    "raw": "{{base_url}}/api/users/me",
                     "host": [
                         "{{base_url}}"
                     ],
                     "path": [
                         "api",
-                        "auth",
+                        "users",
                         "me"
                     ]
+                }
+            }
+        },
+        {
+            "name": "User - Update Profile",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/api/users/me",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "api",
+                        "users",
+                        "me"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Updated Name\",\n  \"phone\": \"1234567890\"\n}"
                 }
             }
         },
@@ -126,7 +153,7 @@
             "request": {
                 "method": "GET",
                 "url": {
-                    "raw": "{{base_url}}/api/properties/search?latitude=28.6&longitude=77.2&radius=5",
+                    "raw": "{{base_url}}/api/properties/search?latitude=28.6&longitude=77.2&radius=5&type=apartment&status=sale&minPrice=1000000&maxPrice=5000000&bhk=2",
                     "host": [
                         "{{base_url}}"
                     ],
@@ -147,6 +174,26 @@
                         {
                             "key": "radius",
                             "value": "5"
+                        },
+                        {
+                            "key": "type",
+                            "value": "apartment"
+                        },
+                        {
+                            "key": "status",
+                            "value": "sale"
+                        },
+                        {
+                            "key": "minPrice",
+                            "value": "1000000"
+                        },
+                        {
+                            "key": "maxPrice",
+                            "value": "5000000"
+                        },
+                        {
+                            "key": "bhk",
+                            "value": "2"
                         }
                     ]
                 }

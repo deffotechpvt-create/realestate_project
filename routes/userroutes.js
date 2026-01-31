@@ -1,13 +1,27 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
+const userController = require('../controllers/userController');
+const { authenticate, isActiveUser } = require('../middleware/authMiddleware');
 
-const { getMyProfile, updateMyProfile } = require("../controllers/usercontroller");
-const authMiddleware = require("../middleware/authMiddleware");
+// ==========================================
+// ALL ROUTES REQUIRE AUTHENTICATION
+// ==========================================
 
-// GET logged in user
-router.get("/me", authMiddleware, getMyProfile);
+// Profile routes
+router.get('/profile', authenticate, userController.getMyProfile);
+router.put('/profile', authenticate, userController.updateMyProfile);
+router.put('/change-password', authenticate, userController.changePassword);
+router.delete('/account', authenticate, userController.deleteMyAccount);
 
-// UPDATE profile
-router.put("/me", authMiddleware, updateMyProfile);
+// Property-related routes
+router.get('/my-properties', authenticate, userController.getMyProperties);
+
+// Shortlist routes (requires active status)
+router.get('/shortlist', authenticate, isActiveUser, userController.getMyShortlist);
+router.post('/shortlist/:propertyId', authenticate, isActiveUser, userController.addToShortlist);
+router.delete('/shortlist/:propertyId', authenticate, isActiveUser, userController.removeFromShortlist);
+
+// Subscription
+router.get('/subscription', authenticate, userController.getMySubscription);
 
 module.exports = router;

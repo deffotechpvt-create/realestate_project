@@ -5,11 +5,12 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const authRoutes = require('./routes/authRoutes');
-const userRoutes = require("./routes/userroutes");
+const userRoutes = require("./routes/userRoutes");
 const dotenv = require('dotenv');
 const { default: connectDB } = require('./config/db');
 dotenv.config();
 const compression = require("compression");
+const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 
 const app = express();
@@ -54,14 +55,15 @@ app.use(cors({
 }));
 // Auth routes
 app.use('/api/auth', authRoutes);
-app.use("/api/users", userRoutes);
+app.use("/api/user", userRoutes);
 
 
 // Basic Placeholder Route
 app.get('/', (req, res) => {
     res.send('Backend API Placeholder. The frontend is currently running in independent mode.');
 });
-
+app.use(notFound);      // 404 handler
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
