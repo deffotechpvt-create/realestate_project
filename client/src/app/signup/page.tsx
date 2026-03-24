@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import api from "@/lib/api";
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function SignupPage() {
@@ -12,23 +13,39 @@ export default function SignupPage() {
         email: '',
         password: '',
         confirmPassword: '',
-        role: 'user'
+        accountType: 'buyer'
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Signup Data:', formData);
+
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
+            alert("Passwords do not match");
             return;
         }
-        // Add signup logic here
-        alert('Signup functionality coming soon!');
+
+        try {
+            const payload = {
+                name: formData.fullName,
+                email: formData.email,
+                password: formData.password,
+                accountType: formData.accountType
+            };
+
+            await api.post("/auth/register", payload);
+
+            alert("Signup successful. Please login.");
+            window.location.href = "/login";
+
+        } catch (err: any) {
+            alert(err.response?.data?.message || "Signup failed");
+        }
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8 py-12">
@@ -80,13 +97,12 @@ export default function SignupPage() {
 
                         <div className="relative">
                             <label className="block text-sm font-medium text-gray-700 mb-1">I am a</label>
-                            <select
-                                name="role"
-                                value={formData.role}
+                            <select name="accountType"
+                                value={formData.accountType}
                                 onChange={handleChange}
                                 className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900"
                             >
-                                <option value="user">Property Seeker (Buyer/Tenant)</option>
+                                <option value="buyer">Property Seeker (Buyer/Tenant)</option>
                                 <option value="agent">Real Estate Agent / Owner</option>
                             </select>
                         </div>
