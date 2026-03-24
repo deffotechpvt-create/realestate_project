@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const authRoutes = require('./routes/authRoutes');
-const userRoutes = require("./routes/userRoutes");
+const userRoutes = require("./routes/userroutes");
 const dotenv = require('dotenv');
 const { default: connectDB } = require('./config/db');
 dotenv.config();
